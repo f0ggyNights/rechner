@@ -3,9 +3,9 @@ from Mathexpr import Mathexpr
 import numbers
 
 def calculate(expr):
-    if expr is Mathexpr:
-        left = expr.left if expr.left is not Mathexpr else calculate(expr.left)
-        right = expr.right if expr.right is not Mathexpr else calculate(expr.right)
+    if isinstance (expr, Mathexpr):
+        left = expr.left if not isinstance (expr.left, Mathexpr) else calculate(expr.left)
+        right = expr.right if not isinstance (expr.right, Mathexpr)else calculate(expr.right)
         op = expr.operator
 
         """
