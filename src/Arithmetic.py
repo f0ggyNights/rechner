@@ -28,7 +28,7 @@ def calculate(expr):
         elif op == "/":
             return left / right
 
-    elif isInstance(expr, numbers.Number):
+    elif isinstance(expr, numbers.Number):
         return expr
 
     else:
