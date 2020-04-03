@@ -29,5 +29,8 @@ def calculate(expr):
             return left / right
 
     elif isInstance(expr, numbers.Number):
+        return expr
+
+    else:
         import sys
         print("Not an Expression", file = sys.stderr)
