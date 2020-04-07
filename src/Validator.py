@@ -2,43 +2,81 @@ import sys
 
 DIGITS = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
 OPERATORS = ["+", "-", "*", "/"]
-PARENTHESIS = ["(", ")"]
+PARENTHESES = ["(", ")"]
 IGNORE = [" "]
-VALID_CHARACTERS = DIGITS + OPERATORS + PARENTHESIS
+VALID_CHARACTERS = DIGITS + OPERATORS + PARENTHESES
 
 
-# checks if a mathematical expression represented as a String is valid
+# checks if a mathematical expression represented as a string is valid
 def validate(stringexpr) -> bool:
-    if stringexpr.count(PARENTHESIS[0]) != stringexpr.count(PARENTHESIS[1]):
-        return False
-
     expr = []
+    error = ValidationError("", "", -1)
+    openparens = 0
 
+    # check if parentheses are closed properly
+    if stringexpr.count(PARENTHESES[0]) > stringexpr.count(PARENTHESES[1]):
+        error = ValidationError(stringexpr, "parenthesis not closed:", stringexpr.rfind(PARENTHESES[0]))
+    
     # ignore spaces except for spacing between digits, in that case return false
     for i in range(len(stringexpr)):
         s = stringexpr[i]
-        # check for spaces between digits
-        if len(expr) > 0 and s in DIGITS and expr[-1] in DIGITS and stringexpr[i-1] in IGNORE:
-            print("illegal syntax:\n{}\n{}^".format(stringexpr, " "*(i-1)), file=sys.stderr)
-            return False
+
         # check for valid characters
         if s in VALID_CHARACTERS:
             expr.append(s)
         elif s not in IGNORE:
-            print("illegal character: {}\n{}\n{}^".format(s, stringexpr, " "*i, file = sys.stderr))
-            return False
+            error = ValidationError(stringexpr, "illegal character", i)
+            break
 
-        
+        # check if parens are open
+        if s in PARENTHESES:
+            if s == PARENTHESES[0]:
+                openparens += 1
+            if s == PARENTHESES[1]:
+                if openparens == 0:
+                    error = ValidationError(stringexpr, "no matching parenthesis", i)
+                    break
+                openparens -= 1
+
+        if len(expr) > 1:
+            # check if operator is followed by operator or closed parenthesis  
+            if expr[-2] in OPERATORS and s in OPERATORS + [PARENTHESES[1]]:
+
+                if not (s == OPERATORS[1] and expr[-2] != OPERATORS[1]):
+                    error = ValidationError(stringexpr, "consecutive operator", i)
+                    break
+            
+            # missing operator
+            if s == PARENTHESES[0] and expr[-2] in DIGITS:
+                error = ValidationError(stringexpr, "missing operator", i-1)
+                break
+
+            # check for spaces between digits
+            if s in DIGITS and expr[-2] in DIGITS and stringexpr[i-1] in IGNORE:
+                error = ValidationError(stringexpr, "missing operator", i-1)
+                break    
 
     
+    
+    # if no other error occured and last valid char is operator or open parenthesis
+    if error.pos == -1 and expr[-1] in OPERATORS + [PARENTHESES[0]]:
+        error = ValidationError(stringexpr, "invalid syntax", stringexpr.rfind(expr[-1]))
 
-    for i in range(len(expr)):
-        
-        # if expr[i] is an operator or open parenthesis and it's the last character 
-        # or following character isn't a digit or open parenthesis
-        if expr[i] in OPERATORS + [PARENTHESIS[0]] and (len(expr) == i+1 or expr[i+1] not in DIGITS + [PARENTHESIS[0]]) or i == 0 and expr[i] in OPERATORS:   
-            return False
+    #actual error
+    if error.pos != -1:
+        print(error, file=sys.stderr)
+        return False
 
     return True
 
-print(validate(" (3) "))
+class ValidationError:
+
+    def __init__(self, expr, msg, pos):
+        self.expr = expr
+        self.msg = msg
+        self.pos = pos
+
+    def __str__(self):
+        return "ValidationError:\n\t{}\n\t{}^\n\t{}\n".format(self.expr, " "*self.pos, self.msg)
+
+#print(validate("1 + + (--1)"))
