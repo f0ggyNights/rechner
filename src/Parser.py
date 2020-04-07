@@ -1,7 +1,8 @@
 from Mathexpr import Mathexpr
-from Arithmetic import calculate
 
-class __token__:
+from typing import List
+
+class Token:
     def __init__(self, token, content):
         self.token = token
         # number            = 1
@@ -15,17 +16,29 @@ class __token__:
         # number: just the number
         # paren: 0 - content is not relevant for the parentesis
 
-    def Print_pretty(self):
-        output = "token: "
-        if self.token == 1: output += "number: " + str(self.content)
-        if self.token == 2: output += "operator " + self.content
-        if self.token == 3: output += "paren_left"
-        if self.token == 4: output += "paren_right"
-        print(output)
+    def __str__(self):
+        if self.token == 1: output = "number " + str(self.content)
+        if self.token == 2: output = "operator " + self.content
+        if self.token == 3: output = "paren_left"
+        if self.token == 4: output = "paren_right"
+        return ("["+output+"]")
 
 
-# returns a list of tokens
-def tokenize(txt):
+
+# ////////////////////////////////////////////////////////
+# //////////////////    tokenizer    /////////////////////
+# ////////////////////////////////////////////////////////
+
+
+def tokenize(txt: str) -> List[Token]:
+    """Identifiziert die einzelnen Teile der eingegebenen Rechnung
+    
+    Der Input string wird in seine Bestandteile Zerlegt:
+    Zahlen, Rechenoperatoren und Klammern.
+    Jedes dieser Bestandteile wird durch ein Token Repräsentiert.
+    Der Rückgabewert dieser Funktion ist die Liste der Token die in
+    dem Eingabestring erkannt wurden."""
+
     def maybeDigit(txt):
         if txt == "":
             return False
@@ -38,22 +51,22 @@ def tokenize(txt):
         return []
     else:
         head, tail = txt[0], txt[1:]
-        token = __token__(0, 0)
+        token = Token(0, 0)
 
-        if head == "+": token = __token__(2, "+")
-        if head == "-": token = __token__(2, "-")
-        if head == "*": token = __token__(2, "*")
-        if head == "/": token = __token__(2, "/")
+        if head == "+": token = Token(2, "+")
+        if head == "-": token = Token(2, "-")
+        if head == "*": token = Token(2, "*")
+        if head == "/": token = Token(2, "/")
 
-        if head == "(": token = __token__(3, 0)
-        if head == ")": token = __token__(4, 0)
+        if head == "(": token = Token(3, 0)
+        if head == ")": token = Token(4, 0)
 
         if maybeDigit(head):
             number = head
             while maybeDigit(tail):
                 head, tail = tail[0], tail[1:]
                 number += head
-            token = __token__(1, int(number))
+            token = Token(1, int(number))
 
         if token.token == 0:
             return tokenize(tail)
@@ -61,62 +74,88 @@ def tokenize(txt):
             return [token] + tokenize(tail)
 
 
-def parseRight(left, tokens):
-    op, right, tail = tokens[0].content, tokens[1].content, tokens[2:]
-    expr = Mathexpr(op, left, right)
+
+# ////////////////////////////////////////////////////////
+# //////////////////    parser    ////////////////////////
+# ////////////////////////////////////////////////////////
+
+
+# Takes an Operator and Returns its precedence.
+# lower means gets calculatet first.
+def operatorPrecedence(operator: Token) -> int:
+    if operator.content in ["*", "/"]:
+        return 0
+    else:
+        return 1
+
+
+def parseRight(left: Mathexpr, tokens) -> Mathexpr:
+
+    op, right, tail = tokens[0], tokens[1], tokens[2:]
+    expr = Mathexpr(op.content, left, right.content)
     if len(tail) == 0:
         return expr
     else:
-        return parseRight(expr, tail)
+        return parseRight(expr, tail)  
     
 
 # parses a math expression
-def parseMath(tokens):
+def parseMath(tokens) -> Mathexpr:
     
     if len(tokens) == 1:
         return tokens[0].content
     else:
 
-        left, op, right, tail = tokens[0].content, tokens[1].content, tokens[2].content, tokens[3:]
-        expr = Mathexpr(op, left, right)
+        # wen das erste Token eine öffnende Klammer ist Konsumieren wir diese
+        # und machen beim nächsten Token weiter.
+        if tokens[0].token == 3:
+            return parseMath(tokens[1:])
 
-        if len(tail) == 0:
+        left, op, right, tail = tokens[0], tokens[1], tokens[2], tokens[3:]
+        expr = Mathexpr(op.content, left.content, right.content)
+
+        if len(tail) <= 1:
             return expr
         else:
-            return parseRight(expr, tail)
+
+            # wenn an Stelle des rechten Operanden eine geöffnete Klammer steht
+            # überspringen wir sie und Parsen den rest der Tokens als rechten
+            # Operanden dieser Operation.
+            if right.token == 3:
+                return Mathexpr(op.content, left.content, parseMath(tail))
+
+            # wenn das nächste Token eine Schließende Klammer ist
+            # überspringen wir sie und ignorieren die Rangordnung des
+            # nächsten Operators.
+            if tail[0].token == 4:
+                return parseRight(expr, tail[1:])
             
-
-    #####
-    """
-    parenBlocks = []
-    for i in range(len(tokens)):
-        openparens = 0
-        if tokens[i].token == 3:
-            openparens += 1
-        elif tokens[i].token == 4:
-           if openparens > 0:
-               openparens -  
-    """
+            # wenn das nächste Token ein Operator ist und dieser vorrang vor
+            # dem aktuellen Operanden hat Parsen wir seine Operation und
+            # nehmen diese als rechten Operanden dieser Operation.
+            if tail[0].token == 2 and operatorPrecedence(op) > operatorPrecedence(tail[0]):
+                return Mathexpr(op.content, left.content, parseMath(tokens[2:]))
+            else:
+                return parseRight(expr, tail)
 
 
-def parse(inputString):
+
+def parse(txt: str) -> Mathexpr:
+    """Parst Die Rechnung aus der Benutzereingabe
+
+    Es werden Punkt vor Strich und Klammern berücksichtigt"""
 
     # tokenizing the user input
-    tokens = tokenize(inputString)
-    for token in tokens:
-        token.Print_pretty()
+    tokens: List[Token] = tokenize(txt)
 
     # parsing the math expression
     expression = parseMath(tokens)
 
     return expression
-    # function not implemented yet - but returns a valid result for testing other modules.
 
 
-# //////////////////////////////////////////////////////////////////////////
-# //////////////////    tests    ///////////////////////////////////////////
-# //////////////////////////////////////////////////////////////////////////
+# ////////////////////////////////////////////////////////
+# //////////////////    tests    /////////////////////////
+# ////////////////////////////////////////////////////////
 
-print(calculate(parse("2+2*5/2")))
-
-
+#print(calculate(parse("4*(2+3)")))
