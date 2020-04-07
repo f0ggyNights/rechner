@@ -5,5 +5,7 @@ if __name__ == "__main__":
     print("Type \"quit\" to stop program\n")
     txt = input()
     while(txt != "quit"):
-        print(Parser.parse(txt))
+        expression = Parser.parse(txt)
+        result = Arithmetic.calculate(expression)
+        print(result)
         txt = input()
