@@ -80,6 +80,20 @@ def tokenize(txt: str) -> List[Token]:
 # ////////////////////////////////////////////////////////
 
 
+def detectNegativeNumbers(tokens) -> List[Token]:
+    if tokens[0].token == 2 and tokens[0].content == "-":
+        tokens[1].content = tokens[1].content * -1
+        return detectNegativeNumbers(tokens[1:])
+    if len(tokens) > 1:
+        i = 1
+        while i < len(tokens)-1:
+            if tokens[i].token == 2 and (tokens[i-1].token == 2 or tokens[i-1].token == 3):
+                tokens[i+1].content = tokens[i+1].content * -1
+                del tokens[i]
+            i += 1
+    return tokens
+
+
 # Takes an Operator and Returns its precedence.
 # lower means gets calculatet first.
 def operatorPrecedence(operator: Token) -> int:
@@ -149,7 +163,8 @@ def parse(txt: str) -> Mathexpr:
 
     # tokenizing the user input
     tokens: List[Token] = tokenize(txt)
-
+    # negative Zahlen erkennen
+    tokens = detectNegativeNumbers(tokens)
     # parsing the math expression
     expression = parseMath(tokens)
 
@@ -161,7 +176,7 @@ def parse(txt: str) -> Mathexpr:
 # ////////////////////////////////////////////////////////
 
 #from Arithmetic import calculate
-#txt = "(1+2)*(3+4)"
+#txt = "3+2*4*-3"
 #print(txt)
 #print(parse(txt))
 #print(calculate(parse(txt)))
