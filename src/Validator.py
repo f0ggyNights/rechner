@@ -38,12 +38,18 @@ def validate(stringexpr) -> bool:
                     break
                 openparens -= 1
 
-        if len(expr) > 1:
-            # check if operator is followed by operator or closed parenthesis  
-            if expr[-2] in OPERATORS and s in OPERATORS + [PARENTHESES[1]]:
 
-                if not (s == OPERATORS[1] and expr[-2] != OPERATORS[1]):
-                    error = ValidationError(stringexpr, "consecutive operator", i)
+        if expr[0] in OPERATORS and expr[0] != OPERATORS[1]:
+            error = ValidationError(stringexpr, "expression can't start with operator", stringexpr.find(expr[0]))
+            break
+
+        if len(expr) > 1:
+            # check if operator or open parenthesis is followed by operator or closed parenthesis
+            
+            if expr[-2] in OPERATORS + [PARENTHESES[0]] and s in OPERATORS + [PARENTHESES[1]]:
+                # does allow "-" after parenthesis or operator  or () parentheses
+                if not (s == OPERATORS[1] and expr[-2] != OPERATORS[1]) and not (expr[-2] == PARENTHESES[0] and s == PARENTHESES[1]):
+                    error = ValidationError(stringexpr, "invalid operator position", i)
                     break
             
             # missing operator
