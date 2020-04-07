@@ -186,8 +186,8 @@ def parse(txt: str) -> Mathexpr:
 # //////////////////    tests    /////////////////////////
 # ////////////////////////////////////////////////////////
 
-from Arithmetic import calculate
-txt = "( 3 * 4 - 5)"
-print(txt)
-print(parse(txt))
-print(calculate(parse(txt)))
+#from Arithmetic import calculate
+#txt = "( 3 * 4 - 5)"
+#print(txt)
+#print(parse(txt))
+#print(calculate(parse(txt)))

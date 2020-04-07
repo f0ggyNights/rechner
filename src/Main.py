@@ -12,7 +12,7 @@ if __name__ == "__main__":
     txt = input(">> ")
 
     while(txt != "quit"):
-        if txt.startswith("details"):
+        if txt.startswith("details") and len(txt.split()) == 2:
            if txt.split()[1] == "1": showdetails = True
            if txt.split()[1] == "0": showdetails = False 
         else:
