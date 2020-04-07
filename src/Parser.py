@@ -105,14 +105,14 @@ def operatorPrecedence(operator: Token) -> int:
 
 def parseRight(left: Mathexpr, tokens) -> Mathexpr:
 
-    test = "r tokens:"
+    """ test = "r tokens:"
     for t in tokens:
         test += str(t)
-    print(test)
+    print(test) """
 
     op, right, tail = tokens[0], tokens[1], tokens[2:]
     expr = Mathexpr(op.content, left, right.content)
-    
+
     if len(tail) <= 1:
         return expr
     elif right.token == 3:
@@ -124,10 +124,10 @@ def parseRight(left: Mathexpr, tokens) -> Mathexpr:
 # parses a math expression
 def parseMath(tokens) -> Mathexpr:
 
-    test = "m tokens:"
+    """ test = "m tokens:"
     for t in tokens:
         test += str(t)
-    print(test)
+    print(test) """
 
     if len(tokens) == 1:
         return tokens[0].content
