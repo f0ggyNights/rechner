@@ -142,15 +142,15 @@ def parseMath(tokens) -> Mathexpr:
 
 
 def parse(txt: str) -> Mathexpr:
+    """Parst Die Rechnung aus der Benutzereingabe
+
+    Es werden Punkt vor Strich und Klammern berücksichtigt"""
 
     # tokenizing the user input
     tokens: List[Token] = tokenize(txt)
-    for token in tokens:
-        print(token)
 
     # parsing the math expression
     expression = parseMath(tokens)
-    print(expression)
 
     return expression
 
@@ -159,4 +159,4 @@ def parse(txt: str) -> Mathexpr:
 # //////////////////    tests    /////////////////////////
 # ////////////////////////////////////////////////////////
 
-print(calculate(parse("4*(2+3)")))
+#print(calculate(parse("4*(2+3)")))
