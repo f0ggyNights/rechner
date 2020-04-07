@@ -107,30 +107,31 @@ def parseMath(tokens) -> Mathexpr:
         return tokens[0].content
     else:
 
+        # wen das erste Token eine öffnende Klammer ist Konsumieren wir diese
+        # und machen beim nächsten Token weiter.
+        if tokens[0].token == 3:
+            return parseMath(tokens[1:])
+
         left, op, right, tail = tokens[0], tokens[1], tokens[2], tokens[3:]
         expr = Mathexpr(op.content, left.content, right.content)
 
         if len(tail) == 0:
             return expr
         else:
-            if tail[0].token == 2 and operatorPrecedence(op) <= operatorPrecedence(tail[0]):
-                return parseRight(expr, tail)
-            else:
+            # wenn das nächste Token eine Schließende Klammer ist
+            # überspringen wir sie und ignorieren die Rangordnung des
+            # nächsten Operators.
+            if tail[0].token == 4:
+                return parseRight(expr, tail[1:])
+            
+            # wenn das nächste Token ein Operator ist und dieser vorrang vor
+            # dem aktuellen Operanden hat Parsen wir seine Operation und
+            # nehmen diese als rechten Operanden dieser Operation.
+            if tail[0].token == 2 and operatorPrecedence(op) > operatorPrecedence(tail[0]):
                 return Mathexpr(op.content, left.content, parseMath(tokens[2:]))
+            else:
+                return parseRight(expr, tail)
 
-
-
-    #####
-    """
-    parenBlocks = []
-    for i in range(len(tokens)):
-        openparens = 0
-        if tokens[i].token == 3:
-            openparens += 1
-        elif tokens[i].token == 4:
-           if openparens > 0:
-               openparens -  
-    """
 
 
 def parse(txt: str) -> Mathexpr:
@@ -151,4 +152,4 @@ def parse(txt: str) -> Mathexpr:
 # //////////////////    tests    /////////////////////////
 # ////////////////////////////////////////////////////////
 
-print(calculate(parse("2+2*5/2+1")))
+print(calculate(parse("(2+3)*4")))
