@@ -115,9 +115,16 @@ def parseMath(tokens) -> Mathexpr:
         left, op, right, tail = tokens[0], tokens[1], tokens[2], tokens[3:]
         expr = Mathexpr(op.content, left.content, right.content)
 
-        if len(tail) == 0:
+        if len(tail) <= 1:
             return expr
         else:
+
+            # wenn an Stelle des rechten Operanden eine geöffnete Klammer steht
+            # überspringen wir sie und Parsen den rest der Tokens als rechten
+            # Operanden dieser Operation.
+            if right.token == 3:
+                return Mathexpr(op.content, left.content, parseMath(tail))
+
             # wenn das nächste Token eine Schließende Klammer ist
             # überspringen wir sie und ignorieren die Rangordnung des
             # nächsten Operators.
@@ -152,4 +159,4 @@ def parse(txt: str) -> Mathexpr:
 # //////////////////    tests    /////////////////////////
 # ////////////////////////////////////////////////////////
 
-print(calculate(parse("(2+3)*4")))
+print(calculate(parse("4*(2+3)")))
